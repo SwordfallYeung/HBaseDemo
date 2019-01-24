@@ -1,4 +1,4 @@
-package cn.swordfall.hbase;
+package cn.swordfall.hbaseOnJava;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
