@@ -1,4 +1,4 @@
-package cn.swordfall.hbase;
+package cn.swordfall.hbaseOnJava;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
  * @create 2018-03-26 10:44
  * @desc
  **/
-public class HBaseTest {
+public class HBaseJavaApiDemo {
 
 	/**
 	 * 配置ss
