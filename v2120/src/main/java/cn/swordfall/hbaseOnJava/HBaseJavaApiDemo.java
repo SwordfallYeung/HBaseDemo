@@ -15,7 +15,7 @@ import java.util.Map;
  * @Author: Yang JianQiu
  * @Date: 2019/1/22 17:46
  */
-public class HBaseJavaApiExample {
+public class HBaseJavaApiDemo {
 
     /**
      * 声明静态配置
