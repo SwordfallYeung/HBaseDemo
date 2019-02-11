@@ -3,7 +3,7 @@ package cn.swordfall.hbaseOnSpark
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{HBaseAdmin, Put, Result, TableDescriptorBuilder}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
-import org.apache.hadoop.hbase.mapred.TableOutputFormat
+import org.apache.hadoop.hbase.mapred.{TableInputFormat, TableOutputFormat}
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 //import org.apache.hadoop.hbase.mapreduce.TableOutputFormat
@@ -129,6 +129,20 @@ class HBaseOnBasicSpark {
       val td = tdb.build()
       admin.createTable(td)
     }
-    //保存到HBase表
+
+    //读取数据并转化成rdd TableInputFormat是org.apache.hadoop.hbase.mapreduce包下的
+    val hbaseRDD = sc.newAPIHadoopRDD(hbaseConf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
+
+    hbaseRDD.foreach{ case (_, result) =>
+      //获取行健
+      val key = Bytes.toString(result.getRow)
+      //通过列族和列名获取列
+      val name = Bytes.toString(result.getValue("cf1".getBytes(), "name".getBytes()))
+      val age = Bytes.toString(result.getValue("cf1".getBytes(), "age".getBytes()))
+        println("Row key:" + key + "\tcf1.Name:" + name + "\tcf1.Age:" + age)
+    }
+    admin.close()
+
+    sparkSession.stop()
   }
 }
