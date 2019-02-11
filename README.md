@@ -6,6 +6,10 @@ $HBASE_HOME/bin/hbase shell<br/>
 原因：
 参考资料：https://stackoverflow.com/questions/25479378/could-not-find-or-load-main-class-org-jruby-main-when-run-hbase-shell<br/>
 
+HBase单机版搭建参考：<br/>
+https://www.cnblogs.com/xuwujing/p/8017116.html<br/>
+https://blog.csdn.net/qazwsxpcm/article/details/78637874<br/>
+
 ### Mongo、Redis、HBase主流nosql性能对比
 参考资料：https://bbs.huaweicloud.com/blogs/7c0b2684201d11e7b8317ca23e93a891
 Mongodb读性能优于写性能，比较像Mysql；HBase写性能优于读性能。
