@@ -86,7 +86,7 @@ class HBaseOnBasicSpark {
     val hbaseConf = HBaseConfiguration.create()
     hbaseConf.set(HConstants.ZOOKEEPER_QUORUM, "localhost")
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
-    hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+    hbaseConf.set(org.apache.hadoop.hbase.mapreduce.TableOutputFormat.OUTPUT_TABLE, tableName)
 
     val jobConf = new JobConf(hbaseConf)
     //设置job的输出格式
@@ -127,7 +127,7 @@ class HBaseOnBasicSpark {
     val hbaseConf = HBaseConfiguration.create()
     hbaseConf.set(HConstants.ZOOKEEPER_QUORUM, "localhost")
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181") //设置zookeeper连接端口，默认2181
-    hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+    hbaseConf.set(org.apache.hadoop.hbase.mapreduce.TableInputFormat.INPUT_TABLE, tableName)
 
     //如果表不存在，则创建表
     val admin = new HBaseAdmin(hbaseConf)
@@ -167,7 +167,7 @@ class HBaseOnBasicSpark {
     val hbaseConf = HBaseConfiguration.create()
     hbaseConf.set(HConstants.ZOOKEEPER_QUORUM, "localhost")
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
-    hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+    hbaseConf.set(org.apache.hadoop.hbase.mapreduce.TableInputFormat.INPUT_TABLE, tableName)
 
     val scan = new Scan()
     scan.addFamily(Bytes.toBytes("v"))
