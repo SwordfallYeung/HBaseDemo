@@ -1,9 +1,12 @@
 package cn.swordfall.hbaseOnSpark
 
+import java.util.Base64
+
 import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client.{HBaseAdmin, Put, Result, TableDescriptorBuilder}
+import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapred.{TableInputFormat, TableOutputFormat}
+import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 //import org.apache.hadoop.hbase.mapreduce.TableOutputFormat
@@ -55,7 +58,7 @@ class HBaseOnBasicSpark {
     val dataRDD = sc.makeRDD(Array("2,jack,16", "1,Lucy,15", "5,mike,17", "3,Lily,14"))
 
     val data = dataRDD.map{ item =>
-      val Array(key, value) = item.split("\t")
+      val Array(key, value) = item.split(",")
       val rowKey = key.reverse
       val put = new Put(Bytes.toBytes(rowKey))
       /*一个Put对象就是一行记录，在构造方法中指定主键
@@ -109,7 +112,11 @@ class HBaseOnBasicSpark {
   /** spark 往hbase里面存放数据 end **/
 
   /** spark 从hbase里面读取数据 start **/
-  def readFromHBaseNewAPI(): Unit ={
+
+  /**
+    * take
+    */
+  def readFromHBaseWithHBaseNewAPI(): Unit ={
     // 屏蔽不必要的日志显示在终端上
     Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
     val sparkSession = SparkSession.builder().appName("SparkToHBase").master("local").getOrCreate()
@@ -131,7 +138,7 @@ class HBaseOnBasicSpark {
     }
 
     //读取数据并转化成rdd TableInputFormat是org.apache.hadoop.hbase.mapreduce包下的
-    val hbaseRDD = sc.newAPIHadoopRDD(hbaseConf, classOf[TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
+    val hbaseRDD = sc.newAPIHadoopRDD(hbaseConf, classOf[org.apache.hadoop.hbase.mapreduce.TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
 
     hbaseRDD.foreach{ case (_, result) =>
       //获取行健
@@ -144,5 +151,39 @@ class HBaseOnBasicSpark {
     admin.close()
 
     sparkSession.stop()
+  }
+
+  /**
+    * scan
+    */
+  def readFromHBaseWithHBaseNewAPIScan(): Unit ={
+    //屏蔽不必要的日志显示在终端上
+    Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
+    val sparkSession = SparkSession.builder().appName("SparkToHBase").master("local").getOrCreate()
+    val sc = sparkSession.sparkContext
+
+    val tableName = "test"
+
+    val hbaseConf = HBaseConfiguration.create()
+    hbaseConf.set(HConstants.ZOOKEEPER_QUORUM, "localhost")
+    hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
+    hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+
+    val scan = new Scan()
+    scan.addFamily(Bytes.toBytes("v"))
+    val proto = ProtobufUtil.toScan(scan)
+    val scanToString = new String(Base64.getEncoder.encode(proto.toByteArray))
+    hbaseConf.set(org.apache.hadoop.hbase.mapreduce.TableInputFormat.SCAN, scanToString)
+
+    //读取数据并转化成rdd TableInputFormat是org.apache.hadoop.hbase.mapreduce包下的
+    val hbaseRDD = sc.newAPIHadoopRDD(hbaseConf, classOf[org.apache.hadoop.hbase.mapreduce.TableInputFormat], classOf[ImmutableBytesWritable], classOf[Result])
+
+    val dataRDD = hbaseRDD
+      .map(x => x._2)
+      .map{result =>
+        (result.getRow, result.getValue(Bytes.toBytes("v"), Bytes.toBytes("value")))
+      }.map(row => (new String(row._1), new String(row._2)))
+      .collect()
+      .foreach(r => (println(r._1 + ":" + r._2)))
   }
 }
