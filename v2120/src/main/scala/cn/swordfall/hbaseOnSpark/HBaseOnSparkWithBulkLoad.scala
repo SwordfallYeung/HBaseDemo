@@ -5,12 +5,12 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2, TableInputFormat, TableOutputFormat}
+import org.apache.hadoop.hbase.spark.{HBaseContext, KeyFamilyQualifier}
 import org.apache.hadoop.hbase.tool.LoadIncrementalHFiles
+import org.apache.hadoop.hbase.spark.HBaseRDDFunctions._
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, KeyValue, TableName}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapreduce.Job
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.apache.spark.sql.SparkSession
 
 /**
@@ -20,6 +20,8 @@ import org.apache.spark.sql.SparkSession
   *  参考资料：
   *  https://www.cnblogs.com/simple-focus/p/6879971.html
   *  https://www.cnblogs.com/MOBIN/p/5559575.html
+  *  https://blog.csdn.net/Suubyy/article/details/80892023
+  *  https://www.jianshu.com/p/b09283b14d84
   */
 class HBaseOnSparkWithBulkLoad {
 
@@ -52,7 +54,7 @@ class HBaseOnSparkWithBulkLoad {
   }
 
   /**
-    * 批量插入数据 只有一列
+    * 批量插入数据 单列
     */
   def insertWithBulkLoadWithKeyValue(): Unit ={
     val sparkSession = SparkSession.builder().appName("insertWithBulkLoad").master("local[4]").getOrCreate()
@@ -91,7 +93,7 @@ class HBaseOnSparkWithBulkLoad {
   }
 
   /**
-    * 批量插入 多列 Put
+    * 批量插入 多列
     */
   def insertWithBulkLoadWithPut(): Unit ={
 
@@ -103,25 +105,26 @@ class HBaseOnSparkWithBulkLoad {
     hbaseConf.set(HConstants.ZOOKEEPER_QUORUM, "192.168.187.201")
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
     hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
+
+    val hbaseContext = new HBaseContext(sc, hbaseConf)
     val conn = ConnectionFactory.createConnection(hbaseConf)
+    val admin = conn.getAdmin
+    val table = conn.getTable(TableName.valueOf(tableName))
 
-    val job = Job.getInstance(hbaseConf)
-    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
-    job.setMapOutputValueClass(classOf[Result])
-    job.setOutputFormatClass(classOf[TableOutputFormat[ImmutableBytesWritable]])
+    val rdd = sc.parallelize(HBaseBlukLoadService.getHBaseDomainArray)
 
-    val rdd = sc.textFile("v2120/a.txt")
-      .map(_.split(","))
-      .map{x => (DigestUtils.md5Hex(x(0)).substring(0, 3) + x(0) , x(1), x(2))}
-      .sortBy(x => x._1)
-      .map(x => {
-          val put = new Put(Bytes.toBytes(x._1))
-          put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("name"), Bytes.toBytes(x._2 + ""))
-          put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("age"), Bytes.toBytes(x._3 + ""))
-          (new ImmutableBytesWritable(), put)
-        })
+    rdd.hbaseBulkLoad(hbaseContext, TableName.valueOf(tableName),
+      t => {
+        val rowKey = t._1
+        val family: Array[Byte] = t._2(0)._1
+        val qualifier = t._2(0)._2
+        val value = t._2(0)._3
+        val keyFamilyQualifier = new KeyFamilyQualifier(rowKey, family, qualifier)
+        Seq((keyFamilyQualifier, value)).iterator
+      },"hdfs://node1:9000/test")
 
-    rdd.saveAsNewAPIHadoopDataset(job.getConfiguration)
+    val bulkLoader = new LoadIncrementalHFiles(hbaseConf)
+    bulkLoader.doBulkLoad(new Path("hdfs://node1:9000/test"), admin, table, conn.getRegionLocator(TableName.valueOf(tableName)))
     sc.stop()
   }
 }
