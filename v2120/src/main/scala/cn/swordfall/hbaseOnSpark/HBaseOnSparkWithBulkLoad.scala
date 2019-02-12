@@ -2,7 +2,7 @@ package cn.swordfall.hbaseOnSpark
 
 import org.apache.commons.codec.digest.DigestUtils
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.client.{ConnectionFactory, HBaseAdmin, HTable, Put}
+import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2, TableInputFormat, TableOutputFormat}
 import org.apache.hadoop.hbase.tool.LoadIncrementalHFiles
@@ -95,9 +95,6 @@ class HBaseOnSparkWithBulkLoad {
     */
   def insertWithBulkLoadWithPut(): Unit ={
 
-    val inputPath = "v2120/a.txt"
-    val outputPath = "hdfs://node1:9000/test"
-
     val sparkSession = SparkSession.builder().appName("insertWithBulkLoad").master("local[4]").getOrCreate()
     val sc = sparkSession.sparkContext
 
@@ -107,23 +104,24 @@ class HBaseOnSparkWithBulkLoad {
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
     hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
     val conn = ConnectionFactory.createConnection(hbaseConf)
-    val admin = conn.getAdmin
-    val table = conn.getTable(TableName.valueOf(tableName))
 
     val job = Job.getInstance(hbaseConf)
-    job.setJarByClass(classOf[HBaseOnSparkWithBulkLoad])
-    job.setMapperClass(classOf[GenerateHFileScala])
     job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
-    job.setMapOutputValueClass(classOf[HFileOutputFormat2])
-    HFileOutputFormat2.configureIncrementalLoad(job, table, conn.getRegionLocator(TableName.valueOf(tableName)))
+    job.setMapOutputValueClass(classOf[Result])
+    job.setOutputFormatClass(classOf[TableOutputFormat[ImmutableBytesWritable]])
 
-    FileInputFormat.addInputPath(job, new Path(inputPath))
-    FileOutputFormat.setOutputPath(job, new Path(outputPath))
-    //job.waitForCompletion(true)
+    val rdd = sc.textFile("v2120/a.txt")
+      .map(_.split(","))
+      .map{x => (DigestUtils.md5Hex(x(0)).substring(0, 3) + x(0) , x(1), x(2))}
+      .sortBy(x => x._1)
+      .map(x => {
+          val put = new Put(Bytes.toBytes(x._1))
+          put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("name"), Bytes.toBytes(x._2 + ""))
+          put.addColumn(Bytes.toBytes("cf1"), Bytes.toBytes("age"), Bytes.toBytes(x._3 + ""))
+          (new ImmutableBytesWritable(), put)
+        })
 
-    if (job.waitForCompletion(true)){
-      val bulkLoader = new LoadIncrementalHFiles(hbaseConf)
-      bulkLoader.doBulkLoad(new Path(outputPath), admin, table, conn.getRegionLocator(TableName.valueOf(tableName)))
-    }
+    rdd.saveAsNewAPIHadoopDataset(job.getConfiguration)
+    sc.stop()
   }
 }
