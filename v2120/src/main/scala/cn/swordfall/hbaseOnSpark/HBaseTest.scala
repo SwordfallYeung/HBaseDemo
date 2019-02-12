@@ -6,10 +6,15 @@ package cn.swordfall.hbaseOnSpark
   */
 object HBaseTest {
   def main(args: Array[String]): Unit = {
-    val hobs = new HBaseOnBasicSpark
+    //val hobs = new HBaseOnBasicSpark
     //hobs.writeToHBase()
     //hobs.writeToHBaseNewAPI()
     //hobs.readFromHBaseWithHBaseNewAPI()
-    hobs.readFromHBaseWithHBaseNewAPIScan()
+    //hobs.readFromHBaseWithHBaseNewAPIScan()
+
+    val hoswbl = new HBaseOnSparkWithBulkLoad
+    //hoswbl.commonInsert()
+    //hoswbl.insertWithBulkLoadWithKeyValue()
+    hoswbl.insertWithBulkLoadWithPut()
   }
 }
