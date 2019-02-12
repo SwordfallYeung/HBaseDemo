@@ -15,6 +15,8 @@ https://blog.csdn.net/qazwsxpcm/article/details/78637874<br/>
 2) MapReduce方式，使用TableOutputFormat作为输出
 3) Bulk Load方式，先将要推入的数据按照格式持久化成HFile文件，然后使用HBase对该文件进行load
 
+https://segmentfault.com/a/1190000009762041
+
 ### Mongo、Redis、HBase主流nosql性能对比
 参考资料：https://bbs.huaweicloud.com/blogs/7c0b2684201d11e7b8317ca23e93a891
 Mongodb读性能优于写性能，比较像Mysql；HBase写性能优于读性能。
