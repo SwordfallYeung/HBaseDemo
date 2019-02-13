@@ -5,13 +5,13 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2, TableInputFormat, TableOutputFormat}
-import org.apache.hadoop.hbase.spark.{HBaseContext, KeyFamilyQualifier}
 import org.apache.hadoop.hbase.tool.LoadIncrementalHFiles
-import org.apache.hadoop.hbase.spark.HBaseRDDFunctions._
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, KeyValue, TableName}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.sql.SparkSession
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * @Author: Yang JianQiu
@@ -106,25 +106,35 @@ class HBaseOnSparkWithBulkLoad {
     hbaseConf.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
     hbaseConf.set(TableOutputFormat.OUTPUT_TABLE, tableName)
 
-    val hbaseContext = new HBaseContext(sc, hbaseConf)
     val conn = ConnectionFactory.createConnection(hbaseConf)
     val admin = conn.getAdmin
     val table = conn.getTable(TableName.valueOf(tableName))
 
-    val rdd = sc.parallelize(HBaseBlukLoadService.getHBaseDomainArray)
+    val job = Job.getInstance(hbaseConf)
+    //设置job的输出格式
+    job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
+    job.setMapOutputValueClass(classOf[KeyValue])
+    job.setOutputFormatClass(classOf[HFileOutputFormat2])
+    HFileOutputFormat2.configureIncrementalLoad(job, table, conn.getRegionLocator(TableName.valueOf(tableName)))
 
-    rdd.hbaseBulkLoad(hbaseContext, TableName.valueOf(tableName),
-      t => {
-        val rowKey = t._1
-        val family: Array[Byte] = t._2(0)._1
-        val qualifier = t._2(0)._2
-        val value = t._2(0)._3
-        val keyFamilyQualifier = new KeyFamilyQualifier(rowKey, family, qualifier)
-        Seq((keyFamilyQualifier, value)).iterator
-      },"hdfs://node1:9000/test")
+    val rdd = sc.textFile("v2120/a.txt")
+      .map(_.split(","))
+      .map(x => (DigestUtils.md5Hex(x(0)).substring(0, 3) + x(0), x(1), x(2)))
+      .sortBy(_._1)
+      .flatMap(x =>
+        {
+          val listBuffer = new ListBuffer[(ImmutableBytesWritable, KeyValue)]
+          val kv1: KeyValue = new KeyValue(Bytes.toBytes(x._1), Bytes.toBytes("cf1"), Bytes.toBytes("name"), Bytes.toBytes(x._2 + ""))
+          val kv2: KeyValue = new KeyValue(Bytes.toBytes(x._1), Bytes.toBytes("cf1"), Bytes.toBytes("age"), Bytes.toBytes(x._3 + ""))
+          listBuffer.append((new ImmutableBytesWritable, kv2))
+          listBuffer.append((new ImmutableBytesWritable, kv1))
+          listBuffer
+        }
+      )
+    //多列的排序，要按照列名字母表大小来
 
+    rdd.saveAsNewAPIHadoopFile("hdfs://node1:9000/test", classOf[ImmutableBytesWritable], classOf[KeyValue], classOf[HFileOutputFormat2], job.getConfiguration)
     val bulkLoader = new LoadIncrementalHFiles(hbaseConf)
     bulkLoader.doBulkLoad(new Path("hdfs://node1:9000/test"), admin, table, conn.getRegionLocator(TableName.valueOf(tableName)))
-    sc.stop()
   }
 }
