@@ -14,7 +14,7 @@ object HBaseTest {
 
     val hoswbl = new HBaseOnSparkWithBulkLoad
     //hoswbl.commonInsert()
-    //hoswbl.insertWithBulkLoadWithKeyValue()
-    hoswbl.insertWithBulkLoadWithPut()
+    //hoswbl.insertWithBulkLoadWithSingle()
+    hoswbl.insertWithBulkLoadWithMulti()
   }
 }

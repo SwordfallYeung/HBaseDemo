@@ -56,7 +56,7 @@ class HBaseOnSparkWithBulkLoad {
   /**
     * 批量插入数据 单列
     */
-  def insertWithBulkLoadWithKeyValue(): Unit ={
+  def insertWithBulkLoadWithSingle(): Unit ={
     val sparkSession = SparkSession.builder().appName("insertWithBulkLoad").master("local[4]").getOrCreate()
     val sc = sparkSession.sparkContext
 
@@ -95,7 +95,7 @@ class HBaseOnSparkWithBulkLoad {
   /**
     * 批量插入 多列
     */
-  def insertWithBulkLoadWithPut(): Unit ={
+  def insertWithBulkLoadWithMulti(): Unit ={
 
     val sparkSession = SparkSession.builder().appName("insertWithBulkLoad").master("local[4]").getOrCreate()
     val sc = sparkSession.sparkContext
