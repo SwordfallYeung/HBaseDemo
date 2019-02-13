@@ -6,6 +6,8 @@ import org.apache.spark.sql.{SaveMode, SparkSession}
 /**
   * @Author: Yang JianQiu
   * @Date: 2019/1/31 2:11
+  * 参考资料：
+  * https://www.cnblogs.com/wumingcong/p/6044038.html
   */
 class HBaseOnSparkWithPhoenix {
 
