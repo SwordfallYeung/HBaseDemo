@@ -15,13 +15,13 @@ class HBaseOnSparkWithPhoenix {
 
     val sparkSession = SparkSession.builder().appName("SparkHBaseDataFrame").master("local").getOrCreate()
 
-    val url = s"jdbc:phoenix:localhost:2181"
-    val dbTable = "PHOENIXTEST"
+    val url = s"jdbc:phoenix:192.168.187.201:2181"
+    val dbTable = "test"
 
     //spark 读取 phoenix 返回 DataFrame的第一种方式
     val rdf = sparkSession.read
       .format("jdbc")
-      .option("driver", "org.apache.phoenix,jdbc,PhoenixDriver")
+      .option("driver", "org.apache.phoenix.jdbc.PhoenixDriver")
       .option("url", url)
       .option("dbtable", dbTable)
       .load()
@@ -36,12 +36,12 @@ class HBaseOnSparkWithPhoenix {
     df.printSchema()
 
     //spark DataFrame 写入 phoenix，需要先建好表
-    df.write
+    /*df.write
       .format("org.apache.phoenix.spark")
       .mode(SaveMode.Overwrite)
       .options(Map("table" -> "PHOENIXTESTCOPY", "zkUrl" -> url))
       .save()
-
+*/
     sparkSession.stop()
   }
 }

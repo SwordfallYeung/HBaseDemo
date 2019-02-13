@@ -12,9 +12,12 @@ object HBaseTest {
     //hobs.readFromHBaseWithHBaseNewAPI()
     //hobs.readFromHBaseWithHBaseNewAPIScan()
 
-    val hoswbl = new HBaseOnSparkWithBulkLoad
+    //val hoswbl = new HBaseOnSparkWithBulkLoad
     //hoswbl.commonInsert()
     //hoswbl.insertWithBulkLoadWithSingle()
-    hoswbl.insertWithBulkLoadWithMulti()
+    //hoswbl.insertWithBulkLoadWithMulti()
+
+    val hoswp = new HBaseOnSparkWithPhoenix
+    hoswp.readFromHBaseWithPhoenix
   }
 }
