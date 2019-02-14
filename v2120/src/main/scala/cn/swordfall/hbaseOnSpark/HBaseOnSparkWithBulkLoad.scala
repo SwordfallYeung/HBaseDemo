@@ -26,6 +26,7 @@ import scala.collection.mutable.ListBuffer
   *  https://www.cnblogs.com/MOBIN/p/5559575.html
   *  https://blog.csdn.net/Suubyy/article/details/80892023
   *  https://www.jianshu.com/p/b09283b14d84
+  *  https://www.jianshu.com/p/8e3fdf70dc06
   */
 class HBaseOnSparkWithBulkLoad {
 
