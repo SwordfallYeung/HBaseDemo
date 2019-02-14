@@ -41,3 +41,7 @@ https://my.oschina.net/lanzp/blog/477732
 HBase二级索引：<br/>
 https://blog.csdn.net/WYpersist/article/details/79830811<br/>
 https://www.jianshu.com/p/0ccd187910e5
+
+### HBase Phoenix 二级索引设计
+https://segmentfault.com/a/1190000016311988<br/>
+https://www.cnblogs.com/haoxinyue/p/6832964.html<br/>
