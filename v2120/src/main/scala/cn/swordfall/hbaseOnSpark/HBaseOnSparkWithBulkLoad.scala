@@ -1,7 +1,10 @@
 package cn.swordfall.hbaseOnSpark
 
+import java.net.URI
+
 import org.apache.commons.codec.digest.DigestUtils
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{HFileOutputFormat2, TableInputFormat, TableOutputFormat}
@@ -9,6 +12,7 @@ import org.apache.hadoop.hbase.tool.LoadIncrementalHFiles
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, KeyValue, TableName}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.mapreduce.Job
+import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 
 import scala.collection.mutable.ListBuffer
@@ -87,6 +91,9 @@ class HBaseOnSparkWithBulkLoad {
           (new ImmutableBytesWritable(), kv1)
         }
       }
+
+    isFileExist("hdfs://node1:9000/test", sc)
+
     rdd.saveAsNewAPIHadoopFile("hdfs://node1:9000/test", classOf[ImmutableBytesWritable], classOf[KeyValue], classOf[HFileOutputFormat2], job.getConfiguration)
     val bulkLoader = new LoadIncrementalHFiles(hbaseConf)
     bulkLoader.doBulkLoad(new Path("hdfs://node1:9000/test"), admin, table, conn.getRegionLocator(TableName.valueOf(tableName)))
@@ -133,8 +140,27 @@ class HBaseOnSparkWithBulkLoad {
       )
     //多列的排序，要按照列名字母表大小来
 
+    isFileExist("hdfs://node1:9000/test", sc)
+
     rdd.saveAsNewAPIHadoopFile("hdfs://node1:9000/test", classOf[ImmutableBytesWritable], classOf[KeyValue], classOf[HFileOutputFormat2], job.getConfiguration)
     val bulkLoader = new LoadIncrementalHFiles(hbaseConf)
     bulkLoader.doBulkLoad(new Path("hdfs://node1:9000/test"), admin, table, conn.getRegionLocator(TableName.valueOf(tableName)))
+  }
+
+  def isFileExist(filePath: String, sc: SparkContext): Unit ={
+    /*
+    hadoop写法
+    val hdfs = FileSystem.get(new URI(filePath), new Configuration)
+    if (hdfs.exists(new Path(filePath))){
+      hdfs.delete(new Path(filePath), true)
+    }*/
+
+    /*spark 写法*/
+    val hadoopConf = sc.hadoopConfiguration
+    val hdfs = FileSystem.get(hadoopConf)
+    if (hdfs.exists(new Path(filePath))){
+      hdfs.delete(new Path(filePath), true)
+    }
+
   }
 }
