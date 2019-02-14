@@ -149,19 +149,10 @@ class HBaseOnSparkWithBulkLoad {
   }
 
   def isFileExist(filePath: String, sc: SparkContext): Unit ={
-    /*
-    hadoop写法
+    val output = new Path(filePath)
     val hdfs = FileSystem.get(new URI(filePath), new Configuration)
-    if (hdfs.exists(new Path(filePath))){
-      hdfs.delete(new Path(filePath), true)
-    }*/
-
-    /*spark 写法*/
-    val hadoopConf = sc.hadoopConfiguration
-    val hdfs = FileSystem.get(hadoopConf)
-    if (hdfs.exists(new Path(filePath))){
-      hdfs.delete(new Path(filePath), true)
+    if (hdfs.exists(output)){
+      hdfs.delete(output, true)
     }
-
   }
 }
