@@ -21,6 +21,9 @@ import java.util.Iterator;
  *
  * 以HBase为数据源
  * 从HBase中获取数据，然后以流的形式发射
+ *
+ * 从HBase读取数据
+ * 第一种：继承RichSourceFunction重写父类方法
  */
 public class HBaseReader extends RichSourceFunction<Tuple2<String, String>> {
 

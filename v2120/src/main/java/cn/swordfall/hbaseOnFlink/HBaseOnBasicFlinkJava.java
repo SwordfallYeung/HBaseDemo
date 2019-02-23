@@ -1,6 +1,7 @@
 package cn.swordfall.hbaseOnFlink;
 
 import org.apache.commons.net.ntp.TimeStamp;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 
@@ -24,8 +25,12 @@ import java.util.Properties;
  * @Author: Yang JianQiu
  * @Date: 2019/2/22 11:04
  *
- * 写入HBase提供两种方式：
+ * 从HBase读取数据有两种方式
  * 第一种：继承RichSourceFunction重写父类方法
+ * 第二种：实现TableInputFormat接口
+ *
+ * 写入HBase提供两种方式：
+ * 第一种：继承RichSinkFunction重写父类方法
  * 第二种：实现OutputFormat接口
  */
 public class HBaseOnBasicFlinkJava {
@@ -40,7 +45,13 @@ public class HBaseOnBasicFlinkJava {
     }
 
     /******************************** read start ***************************************/
-    public static void readFromHBase() throws Exception{
+
+    /**
+     * 从HBase读取数据
+     * 第一种：继承RichSourceFunction重写父类方法
+     * @throws Exception
+     */
+    public static void readFromHBaseWithRichSourceFunction() throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(5000);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -50,12 +61,31 @@ public class HBaseOnBasicFlinkJava {
         dataStream.map(new MapFunction<Tuple2<String,String>, Object>() {
             @Override
             public Object map(Tuple2<String, String> value) throws Exception {
-
+                System.out.println(value.f0 + " " + value.f1);
                 return null;
             }
         });
     }
 
+    /**
+     * 从HBase读取数据
+     * 第二种：实现TableInputFormat接口
+     */
+    public static void readFromHBaseWithTableInputFormat(){
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(5000);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+
+        DataStream<Tuple2<String, String>> dataStream = env.createInput(new HBaseInputFormat());
+
+        dataStream.filter(new FilterFunction<Tuple2<String, String>>() {
+            @Override
+            public boolean filter(Tuple2<String, String> tuple2) throws Exception {
+                return tuple2.f0.startsWith("someStr");
+            }
+        });
+    }
 
     /******************************** read end ***************************************/
 
@@ -126,7 +156,31 @@ public class HBaseOnBasicFlinkJava {
 
     /**
      * 写入HBase
-     * 实现OutputFormat接口
+     * 第一种：继承RichSinkFunction重写父类方法
+     */
+    public void write2HBaseWithRichSinkFunction(){
+        Properties props = new Properties();
+        props.put("bootstrap.servers", "192.168.187.201:9092");
+        props.put("group.id", "kv_flink");
+        props.put("enable.auto.commit", "true");
+        props.put("auto.commit.interval.ms", "1000");
+        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
+        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        env.enableCheckpointing(5000);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
+
+        FlinkKafkaConsumer<String> myConsumer = new FlinkKafkaConsumer<String>(topic, new SimpleStringSchema(), props);
+        DataStream<String> dataStream = env.addSource(myConsumer);
+        //写入HBase
+        dataStream.addSink(new HBaseWriter());
+    }
+
+    /**
+     * 写入HBase
+     * 第二种：实现OutputFormat接口
      */
     public void write2HBaseWithOutputFormat(){
         Properties props = new Properties();
