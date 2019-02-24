@@ -45,3 +45,6 @@ https://www.jianshu.com/p/0ccd187910e5
 ### HBase Phoenix 二级索引设计
 https://segmentfault.com/a/1190000016311988<br/>
 https://www.cnblogs.com/haoxinyue/p/6832964.html<br/>
+
+### HBase性能优化
+一般包括软件层面优化和系统层面优化：<br/>
