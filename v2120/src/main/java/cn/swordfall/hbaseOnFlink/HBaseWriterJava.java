@@ -3,7 +3,6 @@ package cn.swordfall.hbaseOnFlink;/**
  * @Date: 2019/2/23 23:37
  */
 
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -23,8 +22,8 @@ import java.util.ArrayList;
  * 写入HBase
  * 第一种：继承RichSinkFunction重写父类方法
  */
-public class HBaseWriter extends RichSinkFunction<String> {
-    private static final Logger logger = LoggerFactory.getLogger(HBaseReader.class);
+public class HBaseWriterJava extends RichSinkFunction<String> {
+    private static final Logger logger = LoggerFactory.getLogger(HBaseReaderJava.class);
     private Connection conn = null;
     private Table table = null;
     private Scan scan = null;

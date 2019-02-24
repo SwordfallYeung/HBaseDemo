@@ -19,7 +19,7 @@ import java.io.IOException;
  * 从HBase读取数据
  * 第二种：实现TableInputFormat接口
  */
-public class HBaseInputFormat extends TableInputFormat<Tuple2<String, String>> {
+public class HBaseInputFormatJava extends TableInputFormat<Tuple2<String, String>> {
 
     private static TableName tableName = TableName.valueOf("test");
     private static final String cf1 = "cf1";

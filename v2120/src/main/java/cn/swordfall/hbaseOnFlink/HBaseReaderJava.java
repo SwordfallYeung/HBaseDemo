@@ -25,9 +25,9 @@ import java.util.Iterator;
  * 从HBase读取数据
  * 第一种：继承RichSourceFunction重写父类方法
  */
-public class HBaseReader extends RichSourceFunction<Tuple2<String, String>> {
+public class HBaseReaderJava extends RichSourceFunction<Tuple2<String, String>> {
 
-    private static final Logger logger = LoggerFactory.getLogger(HBaseReader.class);
+    private static final Logger logger = LoggerFactory.getLogger(HBaseReaderJava.class);
     private Connection conn = null;
     private Table table = null;
     private Scan scan = null;

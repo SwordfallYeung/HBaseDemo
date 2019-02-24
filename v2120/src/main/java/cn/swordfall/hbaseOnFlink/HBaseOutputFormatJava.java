@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * 写入HBase提供两种方式
  * 第二种：实现OutputFormat接口
  */
-public class HBaseOutputFormat implements OutputFormat<String> {
+public class HBaseOutputFormatJava implements OutputFormat<String> {
     private static String zkServer = "192.168.187.201";
     private static String port = "2181";
     private static TableName tableName = TableName.valueOf("test");

@@ -61,7 +61,7 @@ public class HBaseOnBasicFlinkJava {
         env.enableCheckpointing(5000);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
-        DataStream<Tuple2<String, String>> dataStream = env.addSource(new HBaseReader());
+        DataStream<Tuple2<String, String>> dataStream = env.addSource(new HBaseReaderJava());
 
         dataStream.map(new MapFunction<Tuple2<String,String>, Object>() {
             @Override
@@ -82,7 +82,7 @@ public class HBaseOnBasicFlinkJava {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
-        DataStream<Tuple2<String, String>> dataStream = env.createInput(new HBaseInputFormat());
+        DataStream<Tuple2<String, String>> dataStream = env.createInput(new HBaseInputFormatJava());
 
         dataStream.filter(new FilterFunction<Tuple2<String, String>>() {
             @Override
@@ -180,7 +180,7 @@ public class HBaseOnBasicFlinkJava {
         FlinkKafkaConsumer<String> myConsumer = new FlinkKafkaConsumer<String>(topic, new SimpleStringSchema(), props);
         DataStream<String> dataStream = env.addSource(myConsumer);
         //写入HBase
-        dataStream.addSink(new HBaseWriter());
+        dataStream.addSink(new HBaseWriterJava());
     }
 
     /**
@@ -204,7 +204,7 @@ public class HBaseOnBasicFlinkJava {
         FlinkKafkaConsumer<String> myConsumer = new FlinkKafkaConsumer<String>(topic, new SimpleStringSchema(), props);
         DataStream<String> dataStream = env.addSource(myConsumer);
         //写入HBase
-        dataStream.writeUsingOutputFormat(new HBaseOutputFormat());
+        dataStream.writeUsingOutputFormat(new HBaseOutputFormatJava());
     }
 
     /******************************** write end ***************************************/
