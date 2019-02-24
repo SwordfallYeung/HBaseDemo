@@ -32,6 +32,11 @@ import java.util.Properties;
  * 写入HBase提供两种方式：
  * 第一种：继承RichSinkFunction重写父类方法
  * 第二种：实现OutputFormat接口
+ *
+ * 参考资料：
+ * https://blog.csdn.net/javajxz008/article/details/83269108
+ * https://blog.csdn.net/javajxz008/article/details/83182063
+ * https://blog.csdn.net/Mathieu66/article/details/83095189
  */
 public class HBaseOnBasicFlinkJava {
     private static String zkServer = "192.168.187.201";
