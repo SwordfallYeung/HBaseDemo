@@ -3,7 +3,10 @@ package cn.swordfall.hbaseOnFlink
 import java.util.{Date, Properties}
 
 import org.apache.commons.net.ntp.TimeStamp
+import org.apache.flink.addons.hbase.TableInputFormat
 import org.apache.flink.api.common.serialization.SimpleStringSchema
+import org.apache.flink.configuration
+import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 import org.apache.hadoop.conf.Configuration
@@ -14,6 +17,14 @@ import org.apache.hadoop.hbase.util.Bytes
 /**
   * @Author: Yang JianQiu
   * @Date: 2019/2/22 11:24
+  *
+  * 从HBase读取数据有两种方式
+  * 第一种：继承RichSourceFunction重写父类方法
+  * 第二种：实现TableInputFormat接口
+  *
+  * 写入HBase提供两种方式：
+  * 第一种：继承RichSinkFunction重写父类方法
+  * 第二种：实现OutputFormat接口
   */
 class HBaseOnBasicFlink {
   val zkServer = "192.168.187.201"
@@ -22,6 +33,40 @@ class HBaseOnBasicFlink {
   val cf1 = "cf1"
   val topic = "flink_topic"
 
+  /** ****************************** read start ***************************************/
+
+  /**
+    * 从HBase读取数据
+    * 第一种：继承RichSourceFunction重写父类方法
+    */
+  def readFromHBaseWithRichSourceFunction(): Unit ={
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    env.enableCheckpointing(5000)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+    //val dataStream = env.addSource()
+  }
+
+  def readFromHBaseWithTableInputFormat(): Unit ={
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    env.enableCheckpointing(5000)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+
+    val tableInputFormat = new TableInputFormat[(String, String)] {
+      override def configure(parameters: configuration.Configuration): Unit = {
+
+      }
+
+      override def mapResultToOutType(r: Result): (String, String) = {
+        
+      }
+    }
+  }
+
+  /** ****************************** read end ***************************************/
+
+  /** ****************************** write start ***************************************/
   def readFromKafka: Unit ={
     val props = new Properties()
     props.put("bootstrap.servers", "192.168.187.201:9092")
@@ -31,14 +76,14 @@ class HBaseOnBasicFlink {
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
     props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
 
-    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.enableCheckpointing(1000)
 
     val myConsumer = new FlinkKafkaConsumer[String](topic, new SimpleStringSchema, props)
-    val stream: DataStream[String] = env.addSource(myConsumer)
+    val stream = env.addSource(myConsumer)
     stream.rebalance.map(x => {
       write2BasicHBase(x)
-      (x)
+      x
     })
   }
 
