@@ -206,4 +206,6 @@ public class HBaseOnBasicFlinkJava {
         //写入HBase
         dataStream.writeUsingOutputFormat(new HBaseOutputFormat());
     }
+
+    /******************************** write end ***************************************/
 }
