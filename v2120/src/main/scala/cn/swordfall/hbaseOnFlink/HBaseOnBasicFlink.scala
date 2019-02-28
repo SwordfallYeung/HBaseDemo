@@ -3,9 +3,7 @@ package cn.swordfall.hbaseOnFlink
 import java.util.{Date, Properties}
 
 import org.apache.commons.net.ntp.TimeStamp
-import org.apache.flink.addons.hbase.TableInputFormat
 import org.apache.flink.api.common.serialization.SimpleStringSchema
-import org.apache.flink.configuration
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
@@ -44,7 +42,8 @@ class HBaseOnBasicFlink {
     env.enableCheckpointing(5000)
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
-    //val dataStream = env.addSource()
+    val dataStream: DataStream[(String, String)] = env.addSource(new HBaseReader)
+    dataStream.map(x => println(x._1 + " " + x._2))
   }
 
   def readFromHBaseWithTableInputFormat(): Unit ={
@@ -53,15 +52,8 @@ class HBaseOnBasicFlink {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
 
-    val tableInputFormat = new TableInputFormat[(String, String)] {
-      override def configure(parameters: configuration.Configuration): Unit = {
-
-      }
-
-      override def mapResultToOutType(r: Result): (String, String) = {
-        
-      }
-    }
+    val dataStream = env.createInput(new HBaseInputFormat)
+    dataStream.filter(x => x._1.startsWith("someStr")).print()
   }
 
   /** ****************************** read end ***************************************/
@@ -117,6 +109,49 @@ class HBaseOnBasicFlink {
     table.put(put)
     table.close()
     conn.close()
+  }
+
+  /**
+    * 写入HBase
+    * 第一种：继承RichSinkFunction重写父类方法
+    */
+  def write2HBaseWithRichSinkFunction(): Unit = {
+    val props = new Properties
+    props.put("bootstrap.servers", "192.168.187.201:9092")
+    props.put("group.id", "kv_flink")
+    props.put("enable.auto.commit", "true")
+    props.put("auto.commit.interval.ms", "1000")
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    env.enableCheckpointing(5000)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+    val myConsumer = new FlinkKafkaConsumer[String](topic, new SimpleStringSchema, props)
+    val dataStream: DataStream[String] = env.addSource(myConsumer)
+    //写入HBase
+    dataStream.addSink(new HBaseWriter)
+  }
+
+  /**
+    * 写入HBase
+    * 第二种：实现OutputFormat接口
+    */
+  def write2HBaseWithOutputFormat(): Unit = {
+    val props = new Properties
+    props.put("bootstrap.servers", "192.168.187.201:9092")
+    props.put("group.id", "kv_flink")
+    props.put("enable.auto.commit", "true")
+    props.put("auto.commit.interval.ms", "1000")
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
+    env.enableCheckpointing(5000)
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+    val myConsumer = new FlinkKafkaConsumer[String](topic, new SimpleStringSchema, props)
+    val dataStream: DataStream[String] = env.addSource(myConsumer)
+    dataStream.writeUsingOutputFormat(new HBaseOutputFormatJava)
   }
 }
 
