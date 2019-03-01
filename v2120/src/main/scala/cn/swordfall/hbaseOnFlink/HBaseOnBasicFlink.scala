@@ -23,6 +23,9 @@ import org.apache.hadoop.hbase.util.Bytes
   * 写入HBase提供两种方式：
   * 第一种：继承RichSinkFunction重写父类方法
   * 第二种：实现OutputFormat接口
+  *
+  * 参考资料：
+  * https://blog.csdn.net/liguohuabigdata/article/details/78588861
   */
 class HBaseOnBasicFlink {
   val zkServer = "192.168.187.201"
