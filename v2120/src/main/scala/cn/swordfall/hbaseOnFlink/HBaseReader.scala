@@ -25,6 +25,10 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
   private var tableName: TableName = TableName.valueOf("test")
   private var cf1: String = null
 
+  /**
+    * 在open方法使用HBase的客户端连接
+    * @param parameters
+    */
   override def open(parameters: Configuration): Unit = {
     val config: org.apache.hadoop.conf.Configuration = HBaseConfiguration.create()
 
@@ -61,6 +65,9 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
     }
   }
 
+  /**
+    * 关闭hbase的连接，关闭table表
+    */
   override def close(): Unit = {
     try {
       if (table != null) {
@@ -73,5 +80,4 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
       case e:Exception => println(e.getMessage)
     }
   }
-
 }

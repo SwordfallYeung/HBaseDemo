@@ -22,7 +22,6 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
   private var conn: Connection = null
 
   override def configure(parameters: Configuration): Unit = {
-
     val config: org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
 
     config.set(HConstants.ZOOKEEPER_QUORUM, "192.168.187.201")
