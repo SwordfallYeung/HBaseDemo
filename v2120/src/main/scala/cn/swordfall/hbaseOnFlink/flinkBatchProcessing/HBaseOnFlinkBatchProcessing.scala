@@ -24,8 +24,7 @@ class HBaseOnFlinkBatchProcessing {
   }
 
   /**
-    * 写入HBase
-    * 第二种：实现OutputFormat接口
+    * 写入HBase方式：实现OutputFormat接口
     */
   def write2HBaseWithOutputFormat(): Unit = {
     val env: ExecutionEnvironment = ExecutionEnvironment.getExecutionEnvironment
