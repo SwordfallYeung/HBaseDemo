@@ -42,7 +42,7 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
   }
 
   /**
-    * run方法来自java的接口文件SourceFunction，使用IDEA工具Ctrl + o 无法便捷获取到该方法
+    * run方法来自java的接口文件SourceFunction，使用IDEA工具Ctrl + o 无法便捷获取到该方法，直接override会提示
     * @param sourceContext
     */
   override def run(sourceContext: SourceContext[(String, String)]): Unit = {
