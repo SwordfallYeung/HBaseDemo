@@ -1,6 +1,8 @@
 # HBaseDemo
 Hbase的基本使用及基本demo
 
+注意：0992模块是HBase0.992版本的写法，2120是HBase2.12版本的写法。
+
 $HBASE_HOME/bin/hbase shell<br/>
 报错：Error: Could not find or load main class org.jruby.Main
 原因：
