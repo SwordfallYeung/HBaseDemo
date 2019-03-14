@@ -1,5 +1,9 @@
-package cn.swordfall.hbaseOnFlink;
+package cn.swordfall.hbaseOnFlink.flinkStreaming;
 
+import cn.swordfall.hbaseOnFlink.HBaseInputFormatJava;
+import cn.swordfall.hbaseOnFlink.HBaseOutputFormatJava;
+import cn.swordfall.hbaseOnFlink.HBaseReaderJava;
+import cn.swordfall.hbaseOnFlink.HBaseWriterJava;
 import org.apache.commons.net.ntp.TimeStamp;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
@@ -38,7 +42,7 @@ import java.util.Properties;
  * https://blog.csdn.net/javajxz008/article/details/83182063
  * https://blog.csdn.net/Mathieu66/article/details/83095189
  */
-public class HBaseOnBasicFlinkJava {
+public class HBaseOnFlinkStreamingJava {
     private static String zkServer = "192.168.187.201";
     private static String port = "2181";
     private static TableName tableName = TableName.valueOf("test");
