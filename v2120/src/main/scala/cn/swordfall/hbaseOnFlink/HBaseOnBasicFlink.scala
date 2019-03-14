@@ -49,6 +49,10 @@ class HBaseOnBasicFlink {
     dataStream.map(x => println(x._1 + " " + x._2))
   }
 
+  /**
+    * 从HBase读取数据
+    * 第二种：实现TableInputFormat接口
+    */
   def readFromHBaseWithTableInputFormat(): Unit ={
     val env = StreamExecutionEnvironment.getExecutionEnvironment
     env.enableCheckpointing(5000)
