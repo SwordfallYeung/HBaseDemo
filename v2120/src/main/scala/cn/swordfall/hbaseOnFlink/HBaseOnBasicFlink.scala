@@ -158,7 +158,7 @@ class HBaseOnBasicFlink {
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
     val myConsumer = new FlinkKafkaConsumer[String](topic, new SimpleStringSchema, props)
     val dataStream: DataStream[String] = env.addSource(myConsumer)
-    dataStream.writeUsingOutputFormat(new HBaseOutputFormatJava)
+    dataStream.writeUsingOutputFormat(new HBaseOutputFormat)
   }
 }
 

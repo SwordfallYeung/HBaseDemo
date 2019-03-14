@@ -24,18 +24,25 @@ class HBaseWriter extends RichSinkFunction[String]{
   private val tableName: TableName = TableName.valueOf("test")
   private val cf1 = "cf1"
 
+  /**
+    * 建立HBase连接
+    * @param parameters
+    */
   override def open(parameters: Configuration): Unit = {
     val config:org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
-
     config.set(HConstants.ZOOKEEPER_QUORUM, "192.168.187.201")
     config.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
     config.setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, 30000)
     config.setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 30000)
-
     conn = ConnectionFactory.createConnection(config)
     table = conn.getTable(tableName)
   }
 
+  /**
+    * 处理获取的hbase数据
+    * @param value
+    * @param context
+    */
   override def invoke(value: String, context: SinkFunction.Context[_]): Unit = {
     val array: Array[String] = value.split(",")
     val put: Put = new Put(Bytes.toBytes(array(0)))
@@ -52,6 +59,9 @@ class HBaseWriter extends RichSinkFunction[String]{
     putList.clear()
   }
 
+  /**
+    * 关闭
+    */
   override def close(): Unit = {
     if (table != null) table.close()
     if (conn != null) conn.close()

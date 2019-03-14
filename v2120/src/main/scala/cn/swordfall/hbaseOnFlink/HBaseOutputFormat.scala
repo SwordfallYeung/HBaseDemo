@@ -72,6 +72,9 @@ class HBaseOutputFormat extends OutputFormat[String]{
     putList.clear()
   }
 
+  /**
+    * 关闭
+    */
   override def close(): Unit = {
     try {
       if (conn != null) conn.close()
