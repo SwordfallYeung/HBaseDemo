@@ -1,16 +1,16 @@
-package cn.swordfall.hbaseOnFlink
+package cn.swordfall.hbaseOnFlink.flinkSteaming
 
 import java.util.{Date, Properties}
 
+import cn.swordfall.hbaseOnFlink._
 import org.apache.commons.net.ntp.TimeStamp
 import org.apache.flink.api.common.serialization.SimpleStringSchema
-import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 
 /**
   * @Author: Yang JianQiu
@@ -27,7 +27,7 @@ import org.apache.hadoop.hbase.util.Bytes
   * 参考资料：
   * https://blog.csdn.net/liguohuabigdata/article/details/78588861
   */
-class HBaseOnBasicFlink {
+class HBaseOnFlinkStreaming {
   val zkServer = "192.168.187.201"
   val port = "2181"
   val tableName = TableName.valueOf("test")
@@ -162,9 +162,9 @@ class HBaseOnBasicFlink {
   }
 }
 
-object HBaseOnBasicFlink{
+object HBaseOnFlinkStreaming{
   def main(args: Array[String]): Unit = {
-    val hbof = new HBaseOnBasicFlink
+    val hbof = new HBaseOnFlinkStreaming
     hbof.readFromKafka
   }
 }
