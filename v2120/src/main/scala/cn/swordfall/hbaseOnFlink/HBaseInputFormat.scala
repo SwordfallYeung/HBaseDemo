@@ -36,7 +36,7 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
     try {
       conn = ConnectionFactory.createConnection(config)
       table = conn.getTable(tableName).asInstanceOf[HTable]
-      scan = new Nothing
+      scan = new Scan()
       scan.withStartRow(Bytes.toBytes("1001"))
       scan.withStopRow(Bytes.toBytes("1004"))
       scan.addFamily(Bytes.toBytes(cf1))
