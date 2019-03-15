@@ -20,7 +20,7 @@ class HBaseOnFlinkBatchProcessing {
     val env = ExecutionEnvironment.getExecutionEnvironment
 
     val dataStream = env.createInput(new HBaseInputFormat)
-    dataStream.filter(x => x._1.startsWith("someStr")).print()
+    dataStream.filter(_.f0.startsWith("someStr")).print()
   }
 
   /**

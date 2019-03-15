@@ -60,7 +60,7 @@ class HBaseOnFlinkStreaming {
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
 
     val dataStream = env.createInput(new HBaseInputFormat)
-    dataStream.filter(x => x._1.startsWith("someStr")).print()
+    dataStream.filter(_.f0.startsWith("someStr")).print()
   }
 
   /** ****************************** read end ***************************************/
