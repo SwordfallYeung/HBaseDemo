@@ -5,7 +5,7 @@ import java.util.{Date, Properties}
 import cn.swordfall.hbaseOnFlink._
 import org.apache.commons.net.ntp.TimeStamp
 import org.apache.flink.api.common.serialization.SimpleStringSchema
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment, _}
 import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
 import org.apache.hadoop.hbase.client._
