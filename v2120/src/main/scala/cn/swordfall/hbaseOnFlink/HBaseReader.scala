@@ -66,6 +66,13 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
   }
 
   /**
+    * 必须添加
+    */
+  override def cancel(): Unit = {
+
+  }
+
+  /**
     * 关闭hbase的连接，关闭table表
     */
   override def close(): Unit = {
