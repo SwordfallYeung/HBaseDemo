@@ -1,7 +1,7 @@
 package cn.swordfall.hbaseOnFlink
 
 import java.io.IOException
-
+import org.apache.flink.api.java.tuple.Tuple2
 import org.apache.flink.addons.hbase.TableInputFormat
 import org.apache.flink.configuration.Configuration
 import org.apache.hadoop.hbase.{Cell, HBaseConfiguration, HConstants, TableName}
@@ -15,11 +15,13 @@ import scala.collection.JavaConverters._
   * 从HBase读取数据
   * 第二种：实现TableInputFormat接口
   */
-class HBaseInputFormat extends TableInputFormat[(String, String)]{
+class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
 
   private val tableName: TableName = TableName.valueOf("test")
   private val cf1: String = "cf1"
   private var conn: Connection = null
+  // 结果Tuple
+  val tuple2 = new Tuple2[String, String]
 
   /**
     * 建立HBase连接
@@ -51,7 +53,7 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
     * @param result
     * @return
     */
-  override def mapResultToTuple(result: Result): (String, String) = {
+  override def mapResultToTuple(result: Result): Tuple2[String, String] = {
     val rowKey = Bytes.toString(result.getRow)
     val sb = new StringBuffer()
     for (cell: Cell <- result.listCells().asScala){
@@ -59,7 +61,9 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
       sb.append(value).append(",")
     }
     val value = sb.replace(sb.length() - 1, sb.length(), "").toString
-    (rowKey, value)
+    tuple2.setField(rowKey, 0)
+    tuple2.setField(value, 1)
+    tuple2
   }
 
   /**
