@@ -21,6 +21,10 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
   private val cf1: String = "cf1"
   private var conn: Connection = null
 
+  /**
+    * 建立HBase连接
+    * @param parameters
+    */
   override def configure(parameters: Configuration): Unit = {
     val config: org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
 
@@ -42,6 +46,11 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
     }
   }
 
+  /**
+    * 对获取的数据进行加工处理
+    * @param result
+    * @return
+    */
   override def mapResultToTuple(result: Result): (String, String) = {
     val rowKey = Bytes.toString(result.getRow)
     val sb = new StringBuffer()
@@ -53,14 +62,25 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
     (rowKey, value)
   }
 
+  /**
+    * tableName
+    * @return
+    */
   override def getTableName: String = {
     "test"
   }
 
+  /**
+    * 获取Scan
+    * @return
+    */
   override def getScanner: Scan = {
     scan
   }
 
+  /**
+    * 关闭hbase连接、表table
+    */
   override def close(): Unit = {
     try {
       if (table != null) table.close
