@@ -1,7 +1,7 @@
 package cn.swordfall.hbaseOnFlink.flinkBatchProcessing
 
 import cn.swordfall.hbaseOnFlink.{HBaseInputFormat, HBaseOutputFormat}
-import org.apache.flink.api.scala.{DataSet, ExecutionEnvironment}
+import org.apache.flink.api.scala.{DataSet, ExecutionEnvironment, _}
 
 /**
   * @Author: Yang JianQiu
