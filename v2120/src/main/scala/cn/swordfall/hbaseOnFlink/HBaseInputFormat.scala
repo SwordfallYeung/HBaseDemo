@@ -7,7 +7,7 @@ import org.apache.flink.configuration.Configuration
 import org.apache.hadoop.hbase.{Cell, HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
-
+import scala.collection.JavaConverters._
 /**
   * @Author: Yang JianQiu
   * @Date: 2019/3/1 1:14
@@ -54,7 +54,7 @@ class HBaseInputFormat extends TableInputFormat[(String, String)]{
   override def mapResultToTuple(result: Result): (String, String) = {
     val rowKey = Bytes.toString(result.getRow)
     val sb = new StringBuffer()
-    for (cell: Cell <- result.listCells()){
+    for (cell: Cell <- result.listCells().asScala){
       val value = Bytes.toString(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
       sb.append(value).append(",")
     }

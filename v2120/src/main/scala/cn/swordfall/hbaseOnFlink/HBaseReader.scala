@@ -6,7 +6,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceCont
 import org.apache.hadoop.hbase.{Cell, HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, Scan, Table}
 import org.apache.hadoop.hbase.util.Bytes
-
+import scala.collection.JavaConverters._
 /**
   * @Author: Yang JianQiu
   * @Date: 2019/2/28 18:05
@@ -55,8 +55,8 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
     while (iterator.hasNext){
       val result = iterator.next()
       val rowKey = Bytes.toString(result.getRow)
-      val sb: StringBuffer = new StringBuffer();
-      for (cell:Cell <- result.listCells()){
+      val sb: StringBuffer = new StringBuffer()
+      for (cell:Cell <- result.listCells().asScala){
         val value = Bytes.toString(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
         sb.append(value).append(",")
       }
