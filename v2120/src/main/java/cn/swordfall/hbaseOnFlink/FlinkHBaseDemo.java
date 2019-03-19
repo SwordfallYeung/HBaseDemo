@@ -9,6 +9,7 @@ import cn.swordfall.hbaseOnFlink.flinkBatchProcessing.HBaseOnFlinkBatchProcessin
 public class FlinkHBaseDemo {
     public static void main(String[] args) throws Exception {
         HBaseOnFlinkBatchProcessingJava hofbp = new HBaseOnFlinkBatchProcessingJava();
-        hofbp.readFromHBaseWithTableInputFormat();
+        //hofbp.readFromHBaseWithTableInputFormat();
+        hofbp.write2HBaseWithOutputFormat();
     }
 }

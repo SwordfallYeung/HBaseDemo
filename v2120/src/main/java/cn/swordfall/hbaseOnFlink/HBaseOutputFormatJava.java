@@ -30,7 +30,7 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
      */
     @Override
     public void configure(Configuration configuration) {
-
+        System.out.println("hello ");
     }
 
     /**
@@ -49,6 +49,7 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
         config.setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 30000);
 
         conn = ConnectionFactory.createConnection(config);
+        table = conn.getTable(tableName);
     }
 
     /**
@@ -62,15 +63,17 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
         Put put = new Put(Bytes.toBytes(array[0]));
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array[1]));
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array[2]));
-        ArrayList<Put> putList = new ArrayList<>();
+        table.put(put);
+       /* ArrayList<Put> putList = new ArrayList<>();
         //设置缓存1m，当达到1m时数据会自动刷到hbase
         BufferedMutatorParams params = new BufferedMutatorParams(tableName);
         //设置缓存的大小
         params.writeBufferSize(1024 * 1024);
         BufferedMutator mutator = conn.getBufferedMutator(params);
+        putList.add(put);
         mutator.mutate(putList);
         mutator.flush();
-        putList.clear();
+        putList.clear();*/
     }
 
     /**

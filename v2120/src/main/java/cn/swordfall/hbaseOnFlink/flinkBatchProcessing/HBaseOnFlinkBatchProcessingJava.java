@@ -40,7 +40,8 @@ public class HBaseOnFlinkBatchProcessingJava {
         ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
         //2.定义数据
-        DataSet<String> dataSet = env.fromElements("zhangsan", "lisi", "wangwu", "zhaolilu");
+        DataSet<String> dataSet = env.fromElements("103,zhangsan,20", "104,lisi,21", "105,wangwu,22", "106,zhaolilu,23");
         dataSet.output(new HBaseOutputFormatJava());
+
     }
 }
