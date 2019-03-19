@@ -1,12 +1,15 @@
 package cn.swordfall.hbaseOnFlink
 
 import java.io.IOException
+
+import cn.swordfall.hbaseOnFlink.flink172_hbase212.CustomTableInputFormat
 import org.apache.flink.api.java.tuple.Tuple2
 import org.apache.flink.addons.hbase.TableInputFormat
 import org.apache.flink.configuration.Configuration
 import org.apache.hadoop.hbase.{Cell, HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
+
 import scala.collection.JavaConverters._
 /**
   * @Author: Yang JianQiu
@@ -15,11 +18,8 @@ import scala.collection.JavaConverters._
   * 从HBase读取数据
   * 第二种：实现TableInputFormat接口
   */
-class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
+class HBaseInputFormat extends CustomTableInputFormat[Tuple2[String, String]]{
 
-  private val tableName: TableName = TableName.valueOf("test")
-  private val cf1: String = "cf1"
-  private var conn: Connection = null
   // 结果Tuple
   val tuple2 = new Tuple2[String, String]
 
@@ -28,6 +28,9 @@ class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
     * @param parameters
     */
   override def configure(parameters: Configuration): Unit = {
+    val tableName: TableName = TableName.valueOf("test")
+    val cf1 = "cf1"
+    var conn: Connection = null
     val config: org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
 
     config.set(HConstants.ZOOKEEPER_QUORUM, "192.168.187.201")
@@ -39,8 +42,8 @@ class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
       conn = ConnectionFactory.createConnection(config)
       table = conn.getTable(tableName).asInstanceOf[HTable]
       scan = new Scan()
-      scan.withStartRow(Bytes.toBytes("1001"))
-      scan.withStopRow(Bytes.toBytes("1004"))
+      scan.withStartRow(Bytes.toBytes("001"))
+      scan.withStopRow(Bytes.toBytes("201"))
       scan.addFamily(Bytes.toBytes(cf1))
     } catch {
       case e: IOException =>
@@ -58,7 +61,7 @@ class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
     val sb = new StringBuffer()
     for (cell: Cell <- result.listCells().asScala){
       val value = Bytes.toString(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-      sb.append(value).append(",")
+      sb.append(value).append("_")
     }
     val value = sb.replace(sb.length() - 1, sb.length(), "").toString
     tuple2.setField(rowKey, 0)
@@ -70,9 +73,8 @@ class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
     * tableName
     * @return
     */
-  override def getTableName: String = {
-    "test"
-  }
+  override def getTableName: String = "test"
+
 
   /**
     * 获取Scan
@@ -82,15 +84,4 @@ class HBaseInputFormat extends TableInputFormat[Tuple2[String, String]]{
     scan
   }
 
-  /**
-    * 关闭hbase连接、表table
-    */
-  override def close(): Unit = {
-    try {
-      if (table != null) table.close
-      if (conn != null) conn.close
-    } catch {
-      case e: Exception => println(e.getMessage)
-    }
-  }
 }
