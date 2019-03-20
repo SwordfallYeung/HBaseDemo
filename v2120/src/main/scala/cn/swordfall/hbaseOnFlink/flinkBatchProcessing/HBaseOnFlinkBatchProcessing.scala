@@ -32,6 +32,8 @@ class HBaseOnFlinkBatchProcessing {
     //2.定义数据
     val dataSet: DataSet[String] = env.fromElements("103,zhangsan,20", "104,lisi,21", "105,wangwu,22", "106,zhaolilu,23")
     dataSet.output(new HBaseOutputFormat)
+    //运行下面这句话，程序才会真正执行，这句代码针对的是data sinks写入数据的
+    env.execute()
   }
 }
 

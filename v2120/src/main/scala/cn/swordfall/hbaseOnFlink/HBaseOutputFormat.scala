@@ -18,12 +18,9 @@ import org.apache.hadoop.hbase.util.Bytes
   */
 class HBaseOutputFormat extends OutputFormat[String]{
 
-  private val zkServer = "192.168.187.201"
-  private val port = "2181"
-  private val tableName: TableName = TableName.valueOf("test")
-  private val cf1 = "cf1"
-  private var conn: Connection = null
-  private val table: Table = null
+  val zkServer = "192.168.187.201"
+  val port = "2181"
+  var conn: Connection = null
 
   /**
     * 配置输出格式。此方法总是在实例化输出格式上首先调用的
@@ -57,11 +54,14 @@ class HBaseOutputFormat extends OutputFormat[String]{
     * @param it
     */
   override def writeRecord(it: String): Unit = {
+    val tableName: TableName = TableName.valueOf("test")
+    val cf1 = "cf1"
     val array: Array[String] = it.split(",")
     val put: Put = new Put(Bytes.toBytes(array(0)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array(1)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array(2)))
     val putList: util.ArrayList[Put] = new util.ArrayList[Put]
+    putList.add(put)
     //设置缓存1m，当达到1m时数据会自动刷到hbase
     val params: BufferedMutatorParams = new BufferedMutatorParams(tableName)
     //设置缓存的大小
