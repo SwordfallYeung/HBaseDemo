@@ -22,8 +22,6 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
   private var conn: Connection = null
   private var table: Table = null
   private var scan: Scan = null
-  private var tableName: TableName = TableName.valueOf("test")
-  private var cf1: String = null
 
   /**
     * 在open方法使用HBase的客户端连接
@@ -37,11 +35,13 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
     config.setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, 30000)
     config.setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 30000)
 
+    val tableName: TableName = TableName.valueOf("test")
+    val cf1: String = "cf1"
     conn = ConnectionFactory.createConnection(config)
     table = conn.getTable(tableName)
     scan = new Scan()
-    scan.withStartRow(Bytes.toBytes("1001"))
-    scan.withStopRow(Bytes.toBytes("1004"))
+    scan.withStartRow(Bytes.toBytes("100"))
+    scan.withStopRow(Bytes.toBytes("107"))
     scan.addFamily(Bytes.toBytes(cf1))
   }
 
@@ -58,7 +58,7 @@ class HBaseReader extends RichSourceFunction[(String, String)]{
       val sb: StringBuffer = new StringBuffer()
       for (cell:Cell <- result.listCells().asScala){
         val value = Bytes.toString(cell.getValueArray, cell.getValueOffset, cell.getValueLength)
-        sb.append(value).append(",")
+        sb.append(value).append("_")
       }
       val valueString = sb.replace(sb.length() - 1, sb.length(), "").toString
       sourceContext.collect((rowKey, valueString))
