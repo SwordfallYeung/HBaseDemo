@@ -8,7 +8,7 @@ import org.apache.flink.api.scala.{DataSet, ExecutionEnvironment, _}
   * @Date: 2019/3/14 23:49
   *
   *  flink dataSet 批处理读写HBase
-  *  读取HBase数据方式：实现TableInputFormat接口
+  *  读取HBase数据方式：实现TableInputFormat接口，TableInputFormat实际上最终也是实现InputFormat接口的
   *  写入HBase方式：实现OutputFormat接口
   */
 class HBaseOnFlinkBatchProcessing {
@@ -30,7 +30,7 @@ class HBaseOnFlinkBatchProcessing {
     val env: ExecutionEnvironment = ExecutionEnvironment.getExecutionEnvironment
 
     //2.定义数据
-    val dataSet: DataSet[String] = env.fromElements("zhangsan", "lisi", "wangwu", "zhaolilu")
+    val dataSet: DataSet[String] = env.fromElements("103,zhangsan,20", "104,lisi,21", "105,wangwu,22", "106,zhaolilu,23")
     dataSet.output(new HBaseOutputFormat)
   }
 }
@@ -38,6 +38,7 @@ class HBaseOnFlinkBatchProcessing {
 object HBaseOnFlinkBatchProcessing{
   def main(args: Array[String]): Unit = {
     val hofbp = new HBaseOnFlinkBatchProcessing
-    hofbp.readFromHBaseWithTableInputFormat()
+    //hofbp.readFromHBaseWithTableInputFormat()
+    hofbp.write2HBaseWithOutputFormat()
   }
 }
