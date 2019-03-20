@@ -18,17 +18,16 @@ import org.apache.hadoop.hbase.util.Bytes
   */
 class HBaseWriter extends RichSinkFunction[String]{
 
-  private var conn: Connection = null
-  private var table: Table = null
-  private val scan: Scan = null
-  private val tableName: TableName = TableName.valueOf("test")
-  private val cf1 = "cf1"
+  var conn: Connection = null
+  var table: Table = null
+  val scan: Scan = null
 
   /**
     * 建立HBase连接
     * @param parameters
     */
   override def open(parameters: Configuration): Unit = {
+    val tableName: TableName = TableName.valueOf("test")
     val config:org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
     config.set(HConstants.ZOOKEEPER_QUORUM, "192.168.187.201")
     config.set(HConstants.ZOOKEEPER_CLIENT_PORT, "2181")
@@ -44,11 +43,14 @@ class HBaseWriter extends RichSinkFunction[String]{
     * @param context
     */
   override def invoke(value: String, context: SinkFunction.Context[_]): Unit = {
+    val tableName: TableName = TableName.valueOf("test")
+    val cf1 = "cf1"
     val array: Array[String] = value.split(",")
     val put: Put = new Put(Bytes.toBytes(array(0)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array(1)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array(2)))
     val putList: util.ArrayList[Put] = new util.ArrayList[Put]
+    putList.add(put)
     //设置缓存1m，当达到1m时数据会自动刷到hbase
     val params: BufferedMutatorParams = new BufferedMutatorParams(tableName)
     //设置缓存的大小

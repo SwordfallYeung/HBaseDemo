@@ -28,11 +28,6 @@ import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
   * https://blog.csdn.net/liguohuabigdata/article/details/78588861
   */
 class HBaseOnFlinkStreaming {
-  val zkServer = "192.168.187.201"
-  val port = "2181"
-  val tableName = TableName.valueOf("test")
-  val cf1 = "cf1"
-  val topic = "flink_topic"
 
   /** ****************************** read start ***************************************/
 
@@ -47,6 +42,7 @@ class HBaseOnFlinkStreaming {
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
     val dataStream: DataStream[(String, String)] = env.addSource(new HBaseReader)
     dataStream.map(x => println(x._1 + " " + x._2))
+    env.execute()
   }
 
   /**
@@ -60,13 +56,15 @@ class HBaseOnFlinkStreaming {
     env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
 
     val dataStream = env.createInput(new HBaseInputFormat)
-    dataStream.filter(_.f0.startsWith("someStr")).print()
+    dataStream.filter(_.f0.startsWith("10")).print()
+    env.execute()
   }
 
   /** ****************************** read end ***************************************/
 
   /** ****************************** write start ***************************************/
   def readFromKafka: Unit ={
+    val topic = "test"
     val props = new Properties()
     props.put("bootstrap.servers", "192.168.187.201:9092")
     props.put("group.id", "kv_flink")
@@ -91,6 +89,11 @@ class HBaseOnFlinkStreaming {
     * @param value
     */
   def write2BasicHBase(value: String): Unit ={
+    val tableName = TableName.valueOf("test")
+    val cf1 = "cf1"
+    val zkServer = "192.168.187.201"
+    val port = "2181"
+
     val config = HBaseConfiguration.create
 
     config.set(HConstants.ZOOKEEPER_QUORUM, zkServer)
@@ -123,6 +126,7 @@ class HBaseOnFlinkStreaming {
     * 第一种：继承RichSinkFunction重写父类方法
     */
   def write2HBaseWithRichSinkFunction(): Unit = {
+    val topic = "test"
     val props = new Properties
     props.put("bootstrap.servers", "192.168.187.201:9092")
     props.put("group.id", "kv_flink")
@@ -138,6 +142,7 @@ class HBaseOnFlinkStreaming {
     val dataStream: DataStream[String] = env.addSource(myConsumer)
     //写入HBase
     dataStream.addSink(new HBaseWriter)
+    env.execute()
   }
 
   /**
@@ -145,6 +150,7 @@ class HBaseOnFlinkStreaming {
     * 第二种：实现OutputFormat接口
     */
   def write2HBaseWithOutputFormat(): Unit = {
+    val topic = "test"
     val props = new Properties
     props.put("bootstrap.servers", "192.168.187.201:9092")
     props.put("group.id", "kv_flink")
@@ -159,12 +165,16 @@ class HBaseOnFlinkStreaming {
     val myConsumer = new FlinkKafkaConsumer[String](topic, new SimpleStringSchema, props)
     val dataStream: DataStream[String] = env.addSource(myConsumer)
     dataStream.writeUsingOutputFormat(new HBaseOutputFormat)
+    env.execute()
   }
 }
 
 object HBaseOnFlinkStreaming{
   def main(args: Array[String]): Unit = {
     val hbof = new HBaseOnFlinkStreaming
-    hbof.readFromKafka
+    //hbof.readFromHBaseWithRichSourceFunction
+    //hbof.readFromHBaseWithTableInputFormat()
+    //hbof.write2HBaseWithRichSinkFunction()
+    hbof.write2HBaseWithOutputFormat()
   }
 }
