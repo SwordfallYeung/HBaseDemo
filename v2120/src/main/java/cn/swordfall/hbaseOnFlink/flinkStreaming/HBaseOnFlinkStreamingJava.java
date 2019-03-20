@@ -43,11 +43,6 @@ import java.util.Properties;
  * https://blog.csdn.net/Mathieu66/article/details/83095189
  */
 public class HBaseOnFlinkStreamingJava {
-    private static String zkServer = "192.168.187.201";
-    private static String port = "2181";
-    private static TableName tableName = TableName.valueOf("test");
-    private static final String cf1 = "cf1";
-    private static final String topic = "flink_topic";
 
     public static void main(String[] args) {
         readFromKafkaAndWrite();
@@ -104,6 +99,8 @@ public class HBaseOnFlinkStreamingJava {
      * 从Kafka读取数据
      */
     public static void readFromKafkaAndWrite(){
+        String topic = "test";
+
         Properties props = new Properties();
         props.put("bootstrap.servers", "192.168.187.201:9092");
         props.put("group.id", "kv_flink");
@@ -136,6 +133,11 @@ public class HBaseOnFlinkStreamingJava {
      * @param value
      */
     public static void write2HBase(String value) throws Exception{
+        String zkServer = "192.168.187.201";
+        String port = "2181";
+        TableName tableName = TableName.valueOf("test");
+        String cf1 = "cf1";
+
         Configuration config = HBaseConfiguration.create();
 
         config.set(HConstants.ZOOKEEPER_QUORUM, zkServer);
@@ -146,12 +148,12 @@ public class HBaseOnFlinkStreamingJava {
         Connection conn = ConnectionFactory.createConnection(config);
         Admin admin = conn.getAdmin();
         if (!admin.tableExists(tableName)){
-           /* TableDescriptorBuilder tdb = TableDescriptorBuilder.newBuilder(tableName);
+            TableDescriptorBuilder tdb = TableDescriptorBuilder.newBuilder(tableName);
             ColumnFamilyDescriptorBuilder cfdb = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(cf1));
             ColumnFamilyDescriptor cfd = cfdb.build();
             tdb.setColumnFamily(cfd);
             TableDescriptor td = tdb.build();
-            admin.createTable(td);*/
+            admin.createTable(td);
         }
         Table table = conn.getTable(tableName);
         TimeStamp ts = new TimeStamp(new Date());
@@ -167,7 +169,9 @@ public class HBaseOnFlinkStreamingJava {
      * 写入HBase
      * 第一种：继承RichSinkFunction重写父类方法
      */
-    public void write2HBaseWithRichSinkFunction(){
+    public void write2HBaseWithRichSinkFunction() throws Exception{
+        String topic = "test";
+
         Properties props = new Properties();
         props.put("bootstrap.servers", "192.168.187.201:9092");
         props.put("group.id", "kv_flink");
@@ -185,13 +189,16 @@ public class HBaseOnFlinkStreamingJava {
         DataStream<String> dataStream = env.addSource(myConsumer);
         //写入HBase
         dataStream.addSink(new HBaseWriterJava());
+        env.execute();
     }
 
     /**
      * 写入HBase
      * 第二种：实现OutputFormat接口
      */
-    public void write2HBaseWithOutputFormat(){
+    public void write2HBaseWithOutputFormat() throws Exception{
+        String topic = "test";
+
         Properties props = new Properties();
         props.put("bootstrap.servers", "192.168.187.201:9092");
         props.put("group.id", "kv_flink");
@@ -209,6 +216,7 @@ public class HBaseOnFlinkStreamingJava {
         DataStream<String> dataStream = env.addSource(myConsumer);
         //写入HBase
         dataStream.writeUsingOutputFormat(new HBaseOutputFormatJava());
+        env.execute();
     }
 
     /******************************** write end ***************************************/

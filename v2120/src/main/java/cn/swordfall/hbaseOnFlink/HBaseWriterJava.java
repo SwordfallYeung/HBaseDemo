@@ -26,7 +26,6 @@ public class HBaseWriterJava extends RichSinkFunction<String> {
     private static final Logger logger = LoggerFactory.getLogger(HBaseReaderJava.class);
     private Connection conn = null;
     private Table table = null;
-    private Scan scan = null;
     private static TableName tableName = TableName.valueOf("test");
     private static final String cf1 = "cf1";
 
@@ -50,6 +49,7 @@ public class HBaseWriterJava extends RichSinkFunction<String> {
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array[1]));
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array[2]));
         ArrayList<Put> putList = new ArrayList<>();
+        putList.add(put);
         //设置缓存1m，当达到1m时数据会自动刷到hbase
         BufferedMutatorParams params = new BufferedMutatorParams(tableName);
         //设置缓存的大小
