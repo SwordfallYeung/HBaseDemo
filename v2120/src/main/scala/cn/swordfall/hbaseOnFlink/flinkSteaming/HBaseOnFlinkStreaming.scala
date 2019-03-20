@@ -101,12 +101,12 @@ class HBaseOnFlinkStreaming {
     val conn = ConnectionFactory.createConnection(config)
     val admin = conn.getAdmin
     if (!admin.tableExists(tableName)) {
-      /*val tdb = TableDescriptorBuilder.newBuilder(tableName)
+      val tdb = TableDescriptorBuilder.newBuilder(tableName)
       val cfdb = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(cf1))
       val cfd = cfdb.build
       tdb.setColumnFamily(cfd)
       val td = tdb.build
-      admin.createTable(td)*/
+      admin.createTable(td)
     }
     val table = conn.getTable(tableName)
     val ts = new TimeStamp(new Date)
