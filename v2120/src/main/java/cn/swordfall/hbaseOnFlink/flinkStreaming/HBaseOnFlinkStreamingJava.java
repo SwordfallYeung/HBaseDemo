@@ -69,13 +69,14 @@ public class HBaseOnFlinkStreamingJava {
                 return null;
             }
         });
+        env.execute();
     }
 
     /**
      * 从HBase读取数据
      * 第二种：实现TableInputFormat接口
      */
-    public static void readFromHBaseWithTableInputFormat(){
+    public static void readFromHBaseWithTableInputFormat() throws Exception{
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(5000);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
@@ -89,6 +90,7 @@ public class HBaseOnFlinkStreamingJava {
                 return tuple2.f0.startsWith("someStr");
             }
         });
+        env.execute();
     }
 
     /******************************** read end ***************************************/
