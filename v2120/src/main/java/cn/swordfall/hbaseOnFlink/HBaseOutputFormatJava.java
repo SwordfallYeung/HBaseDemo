@@ -22,7 +22,8 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
     private static TableName tableName = TableName.valueOf("test");
     private static final String cf1 = "cf1";
     private Connection conn = null;
-    private Table table = null;
+    private BufferedMutator mutator;
+    private int count;
 
     /**
      * 配置输出格式。此方法总是在实例化输出格式上首先调用的
@@ -47,8 +48,14 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
         config.set(HConstants.ZOOKEEPER_CLIENT_PORT, port);
         config.setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, 30000);
         config.setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 30000);
-
         conn = ConnectionFactory.createConnection(config);
+
+        TableName tableName = TableName.valueOf("test");
+        BufferedMutatorParams params = new BufferedMutatorParams(tableName);
+        //设置缓存1m，当达到1m时数据会自动刷到hbase
+        params.writeBufferSize(1024 * 1024); //设置缓存的大小
+        mutator = conn.getBufferedMutator(params);
+        count = 0;
     }
 
     /**
@@ -62,16 +69,13 @@ public class HBaseOutputFormatJava implements OutputFormat<String> {
         Put put = new Put(Bytes.toBytes(array[0]));
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array[1]));
         put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array[2]));
-        ArrayList<Put> putList = new ArrayList<>();
-        putList.add(put);
-        //设置缓存1m，当达到1m时数据会自动刷到hbase
-        BufferedMutatorParams params = new BufferedMutatorParams(tableName);
-        //设置缓存的大小
-        params.writeBufferSize(1024 * 1024);
-        BufferedMutator mutator = conn.getBufferedMutator(params);
-        mutator.mutate(putList);
-        mutator.flush();
-        putList.clear();
+        mutator.mutate(put);
+        //每满2000条刷新一下数据
+        if (count >= 2000){
+            mutator.flush();
+            count = 0;
+        }
+        count = count + 1;
     }
 
     /**

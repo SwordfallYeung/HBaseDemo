@@ -21,6 +21,8 @@ class HBaseOutputFormat extends OutputFormat[String]{
   val zkServer = "192.168.187.201"
   val port = "2181"
   var conn: Connection = null
+  var mutator: BufferedMutator = null
+  var count = 0
 
   /**
     * 配置输出格式。此方法总是在实例化输出格式上首先调用的
@@ -39,13 +41,19 @@ class HBaseOutputFormat extends OutputFormat[String]{
     */
   override def open(i: Int, i1: Int): Unit = {
     val config: org.apache.hadoop.conf.Configuration = HBaseConfiguration.create
-
     config.set(HConstants.ZOOKEEPER_QUORUM, zkServer)
     config.set(HConstants.ZOOKEEPER_CLIENT_PORT, port)
     config.setInt(HConstants.HBASE_CLIENT_OPERATION_TIMEOUT, 30000)
     config.setInt(HConstants.HBASE_CLIENT_SCANNER_TIMEOUT_PERIOD, 30000)
-
     conn = ConnectionFactory.createConnection(config)
+
+    val tableName: TableName = TableName.valueOf("test")
+
+    val params: BufferedMutatorParams = new BufferedMutatorParams(tableName)
+    //设置缓存1m，当达到1m时数据会自动刷到hbase
+    params.writeBufferSize(1024 * 1024) //设置缓存的大小
+    mutator = conn.getBufferedMutator(params)
+    count = 0
   }
 
   /**
@@ -54,22 +62,19 @@ class HBaseOutputFormat extends OutputFormat[String]{
     * @param it
     */
   override def writeRecord(it: String): Unit = {
-    val tableName: TableName = TableName.valueOf("test")
+
     val cf1 = "cf1"
     val array: Array[String] = it.split(",")
     val put: Put = new Put(Bytes.toBytes(array(0)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("name"), Bytes.toBytes(array(1)))
     put.addColumn(Bytes.toBytes(cf1), Bytes.toBytes("age"), Bytes.toBytes(array(2)))
-    val putList: util.ArrayList[Put] = new util.ArrayList[Put]
-    putList.add(put)
-    //设置缓存1m，当达到1m时数据会自动刷到hbase
-    val params: BufferedMutatorParams = new BufferedMutatorParams(tableName)
-    //设置缓存的大小
-    params.writeBufferSize(1024 * 1024)
-    val mutator: BufferedMutator = conn.getBufferedMutator(params)
-    mutator.mutate(putList)
-    mutator.flush()
-    putList.clear()
+    mutator.mutate(put)
+    //每4条刷新一下数据，如果是批处理调用outputFormat，这里填写的4必须不能大于批处理的记录总数量，否则数据不会更新到hbase里面
+    if (count >= 4){
+      mutator.flush()
+      count = 0
+    }
+    count = count + 1
   }
 
   /**
