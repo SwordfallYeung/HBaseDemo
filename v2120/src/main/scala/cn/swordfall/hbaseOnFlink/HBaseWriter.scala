@@ -1,8 +1,5 @@
 package cn.swordfall.hbaseOnFlink
 
-import java.util
-import java.util.ArrayList
-
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.sink.{RichSinkFunction, SinkFunction}
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}

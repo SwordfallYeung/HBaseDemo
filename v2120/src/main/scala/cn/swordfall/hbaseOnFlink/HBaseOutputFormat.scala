@@ -1,8 +1,5 @@
 package cn.swordfall.hbaseOnFlink
 
-import java.util
-import java.util.ArrayList
-
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.configuration.Configuration
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
